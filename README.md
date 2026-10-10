@@ -31,11 +31,25 @@ assets/               images and static files
 
 ## Modules
 
-All 12 modules are implemented with mock data persisted to localStorage:
+All modules are implemented with mock data persisted to localStorage:
 
-workforce planning, recruitment, onboarding, employees, time and attendance,
-payroll, performance, compensation, relations and compliance, reports,
-administration, plus the dashboard.
+workforce planning, recruitment, onboarding, employees, leave automation,
+time and attendance, payroll, performance, compensation, relations and
+compliance, reports, administration, plus the dashboard.
+
+## Leave automation
+
+Leave requests are evaluated in two stages. A deterministic rules engine checks
+balance, notice period, required documents, blackout windows, and team coverage.
+The fuzzy judgement is then sent to a Gemini endpoint on the worker8651
+Cloudflare Worker (`/api/groovyrey/gemini`), which returns a structured
+recommendation, confidence, rationale, and flags. The decision router
+auto-approves clean routine requests, rejects any hard-rule failure, and routes
+flagged or low-confidence cases to a human. If the endpoint is unreachable or
+returns an unparseable reply, the app falls back to a rules-only decision.
+
+For local dev, the endpoint only allows the `groovyrey.github.io` and
+`localhost` origins.
 
 ## Dev server
 

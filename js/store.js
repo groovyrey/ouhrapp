@@ -11,7 +11,7 @@ function clone(value) {
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return { ...clone(seed), ...JSON.parse(raw) };
   } catch (error) {
     console.warn("ouhrapp: failed to read stored data", error);
   }
@@ -167,4 +167,44 @@ export function setUserRole(id, role) {
     user.role = role;
     persist();
   }
+}
+
+// Leave automation
+export const getLeaveTypes = () => state.leaveTypes;
+export const getLeaveRequests = () => state.leaveRequests;
+export const getLeaveBalances = () => state.leaveBalances;
+export const getBlackoutDates = () => state.blackoutDates ?? [];
+export const getLeaveType = (id) => state.leaveTypes.find((t) => t.id === id) ?? null;
+
+export function getBalance(employeeId, typeId) {
+  return (
+    state.leaveBalances.find((b) => b.employeeId === employeeId && b.typeId === typeId) ?? {
+      employeeId,
+      typeId,
+      accrued: 0,
+      used: 0,
+    }
+  );
+}
+
+export function addLeaveRequest(request) {
+  const record = { id: uid(), submittedAt: new Date().toISOString().slice(0, 10), ...request };
+  state.leaveRequests.unshift(record);
+  persist();
+  return record;
+}
+
+export function updateLeaveRequest(id, patch) {
+  const request = state.leaveRequests.find((r) => r.id === id);
+  if (request) {
+    Object.assign(request, patch);
+    persist();
+  }
+}
+
+export function commitLeave(employeeId, typeId, days) {
+  const balance = state.leaveBalances.find((b) => b.employeeId === employeeId && b.typeId === typeId);
+  if (balance) balance.used += days;
+  else state.leaveBalances.push({ employeeId, typeId, accrued: days, used: days });
+  persist();
 }

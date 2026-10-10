@@ -3,6 +3,7 @@ import { workforceView } from "./workforce.js";
 import { recruitmentView } from "./recruitment.js";
 import { onboardingView } from "./onboarding.js";
 import { employeesView } from "./employees.js";
+import { leaveView } from "./leave.js";
 import { attendanceView } from "./attendance.js";
 import { payrollView } from "./payroll.js";
 import { performanceView } from "./performance.js";
@@ -17,6 +18,7 @@ export const views = {
   recruitmentView,
   onboardingView,
   employeesView,
+  leaveView,
   attendanceView,
   payrollView,
   performanceView,

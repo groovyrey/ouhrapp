@@ -6,6 +6,7 @@ const ROUTES = {
   recruitment: { title: "Recruitment", view: views.recruitmentView },
   onboarding: { title: "Onboarding", view: views.onboardingView },
   employees: { title: "Employees", view: views.employeesView },
+  leave: { title: "Leave automation", view: views.leaveView },
   attendance: { title: "Time and attendance", view: views.attendanceView },
   payroll: { title: "Payroll", view: views.payrollView },
   performance: { title: "Performance", view: views.performanceView },

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ouhrapp</title>
+  <meta name="description" content="ouhrapp is an HR management prototype covering workforce planning, recruitment, payroll, and reporting." />
+  <meta name="theme-color" content="#0f0b0b" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23e5484d'/%3E%3Ctext x='16' y='23' font-family='Arial' font-size='19' font-weight='700' text-anchor='middle' fill='%23fff'%3Eo%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/app-shell.css" />
+  <link rel="stylesheet" href="css/views.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <button
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="sidebar"
+      >
+        <span class="nav-toggle__bars" aria-hidden="true">
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </span>
+        <span class="nav-toggle__label">Menu</span>
+      </button>
+
+      <a class="topbar__brand" href="#/dashboard">ouhrapp</a>
+      <span class="topbar__user">HR admin</span>
+    </div>
+  </header>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Modules">
+      <nav class="sidebar__nav">
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="#/dashboard">Dashboard</a></li>
+          <li><a class="sidebar__link" href="#/workforce">Workforce planning</a></li>
+          <li><a class="sidebar__link" href="#/recruitment">Recruitment</a></li>
+          <li><a class="sidebar__link" href="#/onboarding">Onboarding</a></li>
+          <li><a class="sidebar__link" href="#/employees">Employees</a></li>
+          <li><a class="sidebar__link" href="#/attendance">Time and attendance</a></li>
+          <li><a class="sidebar__link" href="#/payroll">Payroll</a></li>
+          <li><a class="sidebar__link" href="#/performance">Performance</a></li>
+          <li><a class="sidebar__link" href="#/compensation">Compensation</a></li>
+          <li><a class="sidebar__link" href="#/relations">Relations and compliance</a></li>
+          <li><a class="sidebar__link" href="#/reports">Reports</a></li>
+          <li><a class="sidebar__link" href="#/admin">Administration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main id="main" class="main"></main>
+  </div>
+
+  <div class="nav-scrim"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

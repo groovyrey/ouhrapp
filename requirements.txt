@@ -1,0 +1,112 @@
+ouhrapp
+Multi-tenant HRMS web app.
+
+Stage
+Prototype now: static HTML, CSS, JavaScript.
+Production stack below is what the full build requires.
+
+Modules
+- workforce planning
+- recruitment and hiring
+- onboarding and offboarding
+- employee data management
+- time and attendance
+- payroll
+- performance management
+- compensation management
+- employee relations and compliance
+- reporting and analytics
+- system administration
+
+Frontend
+- Next.js (App Router), React, TypeScript
+- Tailwind CSS
+- TanStack Table for data grids
+- Recharts for dashboards
+- React Hook Form plus Zod for forms and validation
+- dnd-kit for kanban and org chart interactions
+
+Backend
+- Next.js route handlers and server actions (Node runtime)
+- Zod for input validation on every endpoint
+- Drizzle ORM (Prisma is the alternative)
+- pg-boss or Inngest for background jobs
+- node-cron or Cloudflare Cron Triggers for schedules
+
+Database
+- PostgreSQL (Neon or Supabase)
+- Row-level security for tenant isolation
+- Materialized views for reporting
+- Audit log table on every mutation
+
+Auth and access
+- Auth.js (NextAuth) with credentials plus Google and Microsoft SSO
+- Roles: admin, HR, manager, employee, payroll officer
+- Server-side permission checks on every read and write
+- 2FA and session rotation
+- SCIM for enterprise provisioning, later
+
+Storage
+- Cloudflare R2 or Supabase Storage for resumes, contracts, documents
+- Signed URLs and virus scanning on upload
+
+Email and notifications
+- Resend or Cloudflare Email for invites, alerts, approvals
+- In-app notification table plus SSE or WebSocket delivery
+
+Integrations
+- Payroll provider API for tax, deductions, payslips, disbursement. Do not hand-roll tax logic
+- Payout and banking through the payroll provider
+- Accounting export: CSV first, QuickBooks and Xero APIs later
+
+Reporting and analytics
+- SQL aggregation plus materialized views
+- Recharts dashboards
+- Async CSV and PDF export jobs
+
+Files and PDF
+- react-pdf or provider-generated payslips
+- CSV export service
+
+Search
+- Postgres full-text (pg_trgm). Meilisearch if scale demands it
+
+Cache and rate limiting
+- Upstash Redis or Cloudflare KV
+
+Security and compliance
+- Audit trail for every record change
+- Encryption at rest, TLS in transit
+- PII minimization, field-level encryption for salary and government IDs
+- Data retention rules, GDPR and SOC2 alignment
+- WAF and bot protection (Cloudflare)
+
+Observability
+- Sentry for errors
+- Structured logs and uptime checks
+
+Testing
+- Vitest for unit tests
+- Playwright for end-to-end
+
+Infrastructure and deployment
+- Vercel for the Next.js app
+- Cloudflare for R2, Queues, Cron, DNS, WAF
+- GitHub Actions for CI
+- Separate dev, staging, production databases
+
+Mobile
+- Responsive PWA. React Native client later if needed
+
+Per-module requirements
+- workforce planning: headcount plans, org chart, budget tables
+- recruitment and hiring: kanban pipeline, job postings, resume upload, email to candidates
+- onboarding and offboarding: template-driven task workflows per employee
+- employee data management: directory, profile CRUD, document vault, change history
+- time and attendance: server-side clock events, shift rules, leave balances, approvals
+- payroll: provider API, approval workflow, payslip storage and delivery
+- performance management: review cycles, goals, ratings, 360 feedback
+- compensation management: salary bands, adjustments, compensation history
+- employee relations and compliance: case log, policy acknowledgment, retention timers
+- reporting and analytics: dashboards, scheduled exports, role-scoped data
+- system administration: users, roles, settings, audit review

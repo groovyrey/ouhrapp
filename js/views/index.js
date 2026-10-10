@@ -1,0 +1,27 @@
+import { dashboardView } from "./dashboard.js";
+import { workforceView } from "./workforce.js";
+import { recruitmentView } from "./recruitment.js";
+import { onboardingView } from "./onboarding.js";
+import { employeesView } from "./employees.js";
+import { attendanceView } from "./attendance.js";
+import { payrollView } from "./payroll.js";
+import { performanceView } from "./performance.js";
+import { compensationView } from "./compensation.js";
+import { relationsView } from "./relations.js";
+import { reportsView } from "./reports.js";
+import { adminView } from "./admin.js";
+
+export const views = {
+  dashboardView,
+  workforceView,
+  recruitmentView,
+  onboardingView,
+  employeesView,
+  attendanceView,
+  payrollView,
+  performanceView,
+  compensationView,
+  relationsView,
+  reportsView,
+  adminView,
+};

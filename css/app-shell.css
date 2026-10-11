@@ -28,9 +28,7 @@ body {
 
 .topbar__brand {
   display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.15;
+  align-items: center;
 }
 
 .brand-name {
@@ -38,14 +36,6 @@ body {
   font-weight: 650;
   letter-spacing: -0.015em;
   color: var(--fg);
-}
-
-.brand-role {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .topbar__user {

@@ -1,36 +1,44 @@
 :root {
   color-scheme: light;
 
-  --bg: #ffffff;
+  --bg: #fffdf8;
   --bg-elev: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f6f0f0;
-  --fg: #1c1414;
-  --muted: #6f6363;
-  --muted-2: #9b8f8f;
+  --surface: #fffdf8;
+  --surface-2: #eae7df;
+  --surface-soft: #eae7df;
+  --fg: #181916;
+  --muted: #62635d;
+  --muted-2: #a09f97;
 
-  --ink: #0a0808;
-  --accent: #e5484d;
-  --accent-hover: #d8373c;
-  --accent-text: #c22a30;
-  --accent-soft: rgba(229, 72, 77, 0.1);
+  --ink: #181916;
+  --accent: #2457d6;
+  --accent-hover: #1d49b9;
+  --accent-text: #2457d6;
+  --accent-soft: #e2e8ff;
   --accent-fg: #ffffff;
 
-  --border: rgba(28, 20, 20, 0.1);
-  --border-strong: rgba(28, 20, 20, 0.22);
+  --btn-bg: #181916;
+  --btn-text: #ffffff;
+  --btn-hover-bg: #34352f;
+  --btn-hover-border: #34352f;
 
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --border: #d7d3c9;
+  --border-strong: rgba(24, 25, 22, 0.28);
+  --line-soft: rgba(24, 25, 22, 0.1);
 
-  --shadow-sm: 0 1px 2px rgba(28, 20, 20, 0.08);
-  --shadow-md: 0 10px 30px -14px rgba(28, 20, 20, 0.25);
-  --shadow-accent: 0 8px 22px -10px rgba(229, 72, 77, 0.45);
-  --shadow-ink: 0 8px 22px -10px rgba(10, 8, 8, 0.5);
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+
+  --shadow-sm: 0 1px 2px rgba(24, 25, 22, 0.06);
+  --shadow-md: 0 12px 30px -16px rgba(24, 25, 22, 0.22);
+  --shadow-accent: 0 8px 22px -10px rgba(36, 87, 214, 0.4);
+  --shadow-ink: 0 8px 22px -10px rgba(24, 25, 22, 0.45);
 
   --max: 1180px;
   --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 * {
@@ -58,27 +66,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.07;
-  background-image: radial-gradient(
-    1200px 640px at 72% -12%,
-    rgba(229, 72, 77, 0.1),
-    transparent 60%
-  ),
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 h1,
 h2,
 h3 {
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
   line-height: 1.15;
-  font-weight: 600;
+  font-weight: 550;
+  color: var(--fg);
 }
 
 a {
@@ -110,6 +104,11 @@ button:active {
 
 .muted {
   color: var(--muted);
+}
+
+.serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
 }
 
 .skip-link {

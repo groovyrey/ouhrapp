@@ -54,6 +54,6 @@ For local dev, the endpoint only allows the `groovyrey.github.io` and
 ## Dev server
 
 ```
-./serve.py 3000     # no-cache, or:
-servelive 3000 .    # no-cache + live reload
+npx serve .          # or:
+servelive 3000 .     # no-cache + live reload
 ```

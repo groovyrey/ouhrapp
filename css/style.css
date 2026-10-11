@@ -10,17 +10,17 @@
   --muted: #62635d;
   --muted-2: #a09f97;
 
-  --ink: #181916;
-  --accent: #2457d6;
-  --accent-hover: #1d49b9;
-  --accent-text: #2457d6;
-  --accent-soft: #e2e8ff;
+  --ink: #0a0808;
+  --accent: #e3353b;
+  --accent-hover: #c9272d;
+  --accent-text: #c9272d;
+  --accent-soft: rgba(227, 53, 59, 0.1);
   --accent-fg: #ffffff;
 
-  --btn-bg: #181916;
+  --btn-bg: #0a0808;
   --btn-text: #ffffff;
-  --btn-hover-bg: #34352f;
-  --btn-hover-border: #34352f;
+  --btn-hover-bg: #2b2323;
+  --btn-hover-border: #2b2323;
 
   --border: #d7d3c9;
   --border-strong: rgba(24, 25, 22, 0.28);
@@ -32,8 +32,8 @@
 
   --shadow-sm: 0 1px 2px rgba(24, 25, 22, 0.06);
   --shadow-md: 0 12px 30px -16px rgba(24, 25, 22, 0.22);
-  --shadow-accent: 0 8px 22px -10px rgba(36, 87, 214, 0.4);
-  --shadow-ink: 0 8px 22px -10px rgba(24, 25, 22, 0.45);
+  --shadow-accent: 0 8px 22px -10px rgba(227, 53, 59, 0.45);
+  --shadow-ink: 0 8px 22px -10px rgba(10, 8, 8, 0.5);
 
   --max: 1180px;
   --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -100,6 +100,11 @@ button:active {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 
 .muted {

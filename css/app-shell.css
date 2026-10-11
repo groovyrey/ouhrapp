@@ -147,8 +147,20 @@ body {
 }
 
 .sidebar__link.is-active {
-  color: var(--fg);
+  color: var(--accent-text);
   font-weight: 600;
+}
+
+.sidebar__link.is-active::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  width: 3px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: translateY(-50%);
 }
 
 .sidebar__link.is-active::after {

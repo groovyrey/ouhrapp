@@ -12,7 +12,7 @@ export function adminView(root) {
       `<select class="select select--mini" data-user="${user.id}">
         ${ROLES.map((role) => `<option ${role === user.role ? "selected" : ""}>${role}</option>`).join("")}
       </select>`,
-      `<button class="btn btn--ghost" type="button" data-remove="${user.id}">Remove</button>`,
+      `<button class="btn btn--ghost" type="button" data-remove="${user.id}"><svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Remove</button>`,
     ]);
     root.querySelector("#users-table").innerHTML = renderTable({
       columns: ["Name", "Email", "Role", ""],
@@ -21,13 +21,13 @@ export function adminView(root) {
   }
 
   root.innerHTML = `
-    ${viewHead("Administration", `<button class="btn" id="reset" type="button">Reset demo data</button>`)}
+    ${viewHead("Administration", `<button class="btn" id="reset" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-reset"></use></svg>Reset demo data</button>`)}
     <form class="form form--inline" id="user-form">
       ${field("Name", "name")}
       ${field("Email", "email", { type: "email" })}
       ${field("Role", "role", { options: ROLES })}
       <div class="form__actions">
-        <button class="btn btn--primary" type="submit">Add user</button>
+        <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-user-plus"></use></svg>Add user</button>
       </div>
     </form>
     <div id="users-table"></div>

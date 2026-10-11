@@ -19,7 +19,7 @@ export function payrollView(root) {
   }
 
   root.innerHTML = `
-    ${viewHead("Payroll", `<button class="btn btn--primary" id="run-payroll" type="button">Run payroll</button>`)}
+    ${viewHead("Payroll", `<button class="btn btn--primary" id="run-payroll" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-play"></use></svg>Run payroll</button>`)}
     <p class="muted">Payroll runs are computed from active salaries. Real disbursement stays with a payroll provider.</p>
     <div id="payroll-table"></div>
   `;

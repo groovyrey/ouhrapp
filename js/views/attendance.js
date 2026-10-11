@@ -22,7 +22,7 @@ export function attendanceView(root) {
   }
 
   root.innerHTML = `
-    ${viewHead("Time and attendance", `<button class="btn btn--primary" id="clock" type="button">Clock in</button>`)}
+    ${viewHead("Time and attendance", `<button class="btn btn--primary" id="clock" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg><span id="clock-label">Clock in</span></button>`)}
     <p class="muted" id="clock-status">Not clocked in.</p>
     <form class="form form--inline" id="time-form">
       ${field("Employee", "employee")}
@@ -30,26 +30,27 @@ export function attendanceView(root) {
       ${field("Hours", "hours", { type: "number" })}
       ${field("Note", "note", { required: false })}
       <div class="form__actions">
-        <button class="btn btn--primary" type="submit">Log time</button>
+        <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg>Log time</button>
       </div>
     </form>
     <div id="time-table"></div>
   `;
 
   const clockButton = root.querySelector("#clock");
+  const clockLabel = root.querySelector("#clock-label");
   const status = root.querySelector("#clock-status");
 
   clockButton.addEventListener("click", () => {
     if (!sessionStart) {
       sessionStart = Date.now();
-      clockButton.textContent = "Clock out";
+      clockLabel.textContent = "Clock out";
       status.textContent = `Clocked in at ${new Date(sessionStart).toLocaleTimeString()}.`;
       return;
     }
     const hours = Math.max(0.1, Math.round(((Date.now() - sessionStart) / 3600000) * 10) / 10);
     addTimeEntry({ employee: EMPLOYEE, date: new Date().toISOString().slice(0, 10), hours, note: "Clocked" });
     sessionStart = null;
-    clockButton.textContent = "Clock in";
+    clockLabel.textContent = "Clock in";
     status.textContent = "Not clocked in.";
     paint();
   });

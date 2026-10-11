@@ -32,17 +32,48 @@ body {
 }
 
 .brand-name {
-  font-size: 14px;
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--fg);
+}
+
+.brand-accent {
+  color: var(--accent);
 }
 
 .topbar__user {
   margin-left: auto;
-  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--surface);
+}
+
+.topbar__avatar {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.topbar__avatar .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.topbar__role {
+  color: var(--fg);
   font-family: var(--font-mono);
   font-size: 10px;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -106,13 +137,20 @@ body {
 
 .sidebar__link {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 11px;
   padding: 9px 8px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 500;
   border-radius: var(--radius-sm);
   transition: color 0.2s ease;
+}
+
+.sidebar__link .icon {
+  width: 16px;
+  height: 16px;
 }
 
 .sidebar__link::after {

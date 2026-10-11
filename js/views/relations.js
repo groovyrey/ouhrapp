@@ -21,7 +21,7 @@ export function relationsView(root) {
       `<span class="num">${policy.acknowledged} / ${policy.total}</span>`,
       policy.acknowledged >= policy.total
         ? "Complete"
-        : `<button class="btn btn--ghost" type="button" data-ack="${policy.id}">Record acknowledgment</button>`,
+        : `<button class="btn btn--ghost" type="button" data-ack="${policy.id}"><svg class="icon" aria-hidden="true"><use href="#icon-ack"></use></svg>Record acknowledgment</button>`,
     ]);
 
     root.querySelector("#cases-table").innerHTML = renderTable({

@@ -18,7 +18,7 @@ export function employeesView(root) {
   root.innerHTML = `
     <header class="view-head">
       <h1>Employees</h1>
-      <button class="btn btn--primary" type="button" data-action="new">Add employee</button>
+      <button class="btn btn--primary" type="button" data-action="new"><svg class="icon" aria-hidden="true"><use href="#icon-user-plus"></use></svg>Add employee</button>
     </header>
 
     <form class="form" id="employee-form" hidden>
@@ -40,8 +40,8 @@ export function employeesView(root) {
         <input class="input" type="date" name="startDate" />
       </label>
       <div class="form__actions">
-        <button class="btn btn--primary" type="submit">Save</button>
-        <button class="btn" type="button" data-action="cancel">Cancel</button>
+        <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>Save</button>
+        <button class="btn" type="button" data-action="cancel"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg>Cancel</button>
       </div>
     </form>
 
@@ -78,8 +78,8 @@ export function employeesView(root) {
         escapeHtml(employee.status),
         `<span class="num">${escapeHtml(formatDate(employee.startDate))}</span>`,
         `<div class="actions">
-          <button class="btn btn--ghost" type="button" data-action="edit" data-id="${employee.id}">Edit</button>
-          <button class="btn btn--ghost" type="button" data-action="delete" data-id="${employee.id}">Delete</button>
+          <button class="btn btn--ghost" type="button" data-action="edit" data-id="${employee.id}"><svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Edit</button>
+          <button class="btn btn--ghost" type="button" data-action="delete" data-id="${employee.id}"><svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Delete</button>
         </div>`,
       ]);
 

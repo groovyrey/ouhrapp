@@ -14,8 +14,8 @@ export function recruitmentView(root) {
             <strong>${escapeHtml(candidate.name)}</strong>
             <span class="muted">${escapeHtml(candidate.role)}</span>
             <div class="actions">
-              <button class="btn btn--ghost" type="button" data-move="-1" data-id="${candidate.id}">Back</button>
-              <button class="btn btn--ghost" type="button" data-move="1" data-id="${candidate.id}">Advance</button>
+              <button class="btn btn--ghost" type="button" data-move="-1" data-id="${candidate.id}"><svg class="icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg>Back</button>
+              <button class="btn btn--ghost" type="button" data-move="1" data-id="${candidate.id}">Advance<svg class="icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
             </div>
           </div>`,
         )
@@ -33,7 +33,7 @@ export function recruitmentView(root) {
       ${field("Name", "name")}
       ${field("Role", "role")}
       <div class="form__actions">
-        <button class="btn btn--primary" type="submit">Add candidate</button>
+        <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-user-plus"></use></svg>Add candidate</button>
       </div>
     </form>
     <div class="kanban" id="kanban"></div>

@@ -52,8 +52,8 @@ function requestCard(request) {
 
   const override = WAIT.includes(request.status)
     ? `<div class="actions">
-        <button class="btn btn--accent" type="button" data-decide="approve" data-id="${request.id}">Approve</button>
-        <button class="btn btn--ghost" type="button" data-decide="reject" data-id="${request.id}">Reject</button>
+        <button class="btn btn--accent" type="button" data-decide="approve" data-id="${request.id}"><svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>Approve</button>
+        <button class="btn btn--ghost" type="button" data-decide="reject" data-id="${request.id}"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg>Reject</button>
       </div>`
     : "";
 
@@ -120,7 +120,7 @@ export function leaveView(root) {
       ${field("End", "endDate", { type: "date" })}
       ${field("Reason", "reason", { required: false })}
       <div class="form__actions">
-        <button class="btn btn--primary" type="submit">Submit for evaluation</button>
+        <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-send"></use></svg>Submit for evaluation</button>
       </div>
     </form>
     <div class="cards" id="leave-list"></div>

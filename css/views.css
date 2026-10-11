@@ -94,7 +94,7 @@
   padding: 11px 13px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-soft);
   color: var(--fg);
   font-family: inherit;
   font-size: 14px;

@@ -3,8 +3,7 @@ import { authenticate } from "../auth/index.js";
 export function loginView(root, onSuccess) {
   root.innerHTML = `
     <form class="login" id="login-form" novalidate>
-      <h1 class="login__brand">OU<span class="brand-accent">HR</span>APP</h1>
-      <p class="muted">Sign in to continue.</p>
+      <h1 class="login__title">Sign in</h1>
       <label class="field">Username
         <input class="input" name="username" autocomplete="username" autofocus required />
       </label>

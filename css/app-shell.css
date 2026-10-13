@@ -264,3 +264,57 @@ body {
     transform: translateY(-6px) rotate(-45deg);
   }
 }
+
+.auth-screen .sidebar,
+.auth-screen .nav-scrim,
+.auth-screen .topbar__brand,
+.auth-screen .topbar__user,
+.auth-screen .topbar__signout {
+  display: none;
+}
+
+.auth-screen .app {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.auth-screen .main {
+  padding-top: clamp(56px, 14vh, 132px);
+}
+
+.login {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(360px, 100%);
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.login__brand {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.login > .muted {
+  margin: 0;
+  font-size: 13px;
+}
+
+.login__error {
+  margin: 0;
+  color: var(--accent-text);
+  font-size: 12.5px;
+}
+
+.login__submit {
+  width: 100%;
+}
+
+.topbar__signout {
+  flex: none;
+}

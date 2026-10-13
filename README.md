@@ -18,6 +18,18 @@ Open `index.html` directly in a browser, or serve the folder:
 npx serve .
 ```
 
+Sign in with username `admin` and password `admin123`.
+
+## Authentication
+
+Prototype auth gate only, not real security. Credentials and the session live client side.
+
+- `js/auth/session.js` holds a single account (`admin` / `admin123`, role Administrator) and reads and writes the session in `localStorage` under `ouhrapp:session:v1`.
+- `js/views/login.js` renders the sign-in form, validates on submit, and shows an error on bad credentials.
+- `js/main.js` decides on boot: an existing session mounts the shell and router, otherwise it renders the login form and hides the sidebar, topbar brand, and user pill via the `auth-screen` body class. Sign out clears the session and reloads.
+
+Because the check runs in the browser, this only gates the demo UI. The real app should authenticate server side and enforce roles there.
+
 ## Modules
 
 Each sidebar entry maps to one view in `js/views/`:

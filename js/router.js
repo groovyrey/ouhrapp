@@ -27,7 +27,7 @@ export function initRouter(root) {
     root.innerHTML = "";
     route.view(root);
     root.scrollTop = 0;
-    document.title = `ouhrapp - ${route.title}`;
+    document.title = `OUHRAPP - ${route.title}`;
     document.dispatchEvent(new CustomEvent("route:change", { detail: { key } }));
   }
 

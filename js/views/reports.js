@@ -1,5 +1,5 @@
 import { getEmployees, getDepartments } from "../store.js";
-import { renderBars, renderTable, viewHead } from "../components/index.js";
+import { renderBars, renderTable, viewHead, panel } from "../components/index.js";
 import { escapeHtml, formatMoney } from "../utils/index.js";
 
 export function reportsView(root) {
@@ -26,11 +26,11 @@ export function reportsView(root) {
 
   root.innerHTML = `
     ${viewHead("Reports")}
-    <h2 class="subhead">Headcount by department</h2>
-    ${renderBars(byDepartment)}
-    <h2 class="subhead">Headcount by status</h2>
-    ${renderBars(byStatus)}
-    <h2 class="subhead">Average salary by department</h2>
-    ${renderTable({ columns: ["Department", "Average salary"], rows: salaryRows })}
+    ${panel("Headcount by department", renderBars(byDepartment))}
+    ${panel("Headcount by status", renderBars(byStatus))}
+    ${panel(
+      "Average salary by department",
+      renderTable({ columns: ["Department", "Average salary"], rows: salaryRows }),
+    )}
   `;
 }

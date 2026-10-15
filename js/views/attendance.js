@@ -1,5 +1,5 @@
 import { getTimeEntries, addTimeEntry } from "../store.js";
-import { renderTable, viewHead, field } from "../components/index.js";
+import { renderTable, viewHead, field, panel } from "../components/index.js";
 import { escapeHtml, formatDate } from "../utils/index.js";
 
 const EMPLOYEE = "Rey Centeno";
@@ -23,7 +23,6 @@ export function attendanceView(root) {
 
   root.innerHTML = `
     ${viewHead("Time and attendance", `<button class="btn btn--primary" id="clock" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg><span id="clock-label">Clock in</span></button>`)}
-    <p class="muted" id="clock-status">Not clocked in.</p>
     <form class="form form--inline" id="time-form">
       ${field("Employee", "employee")}
       ${field("Date", "date", { type: "date" })}
@@ -33,7 +32,9 @@ export function attendanceView(root) {
         <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg>Log time</button>
       </div>
     </form>
-    <div id="time-table"></div>
+    ${panel("Recent entries", `<div id="time-table"></div>`, {
+      meta: `<span id="clock-status">Not clocked in</span>`,
+    })}
   `;
 
   const clockButton = root.querySelector("#clock");

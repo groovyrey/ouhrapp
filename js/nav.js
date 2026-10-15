@@ -4,6 +4,9 @@ export function initNav() {
   const toggle = document.querySelector(".nav-toggle");
   const sidebar = document.querySelector("#sidebar");
   const scrim = document.querySelector(".nav-scrim");
+  const pill = document.querySelector(".topbar__user");
+  const slot = document.querySelector("#sidebar-user");
+  const signout = document.querySelector("#signout");
 
   if (!toggle || !sidebar || !scrim) return;
 
@@ -63,11 +66,22 @@ export function initNav() {
   });
 
   mobile.addEventListener("change", (event) => {
+    placeUser();
     if (!event.matches) close();
   });
 
+  placeUser();
   highlight();
   document.addEventListener("route:change", highlight);
+
+  function placeUser() {
+    if (!pill || !slot) return;
+    if (mobile.matches) {
+      if (pill.parentElement !== slot) slot.append(pill);
+    } else if (signout && signout.previousElementSibling !== pill) {
+      signout.before(pill);
+    }
+  }
 
   function highlight() {
     const key = window.location.hash.replace(/^#\/?/, "") || "dashboard";

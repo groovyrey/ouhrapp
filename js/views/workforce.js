@@ -1,5 +1,5 @@
 import { getPlans, updatePlan, getEmployees } from "../store.js";
-import { renderTable, viewHead } from "../components/index.js";
+import { renderTable, viewHead, panel } from "../components/index.js";
 import { escapeHtml } from "../utils/index.js";
 
 export function workforceView(root) {
@@ -22,7 +22,7 @@ export function workforceView(root) {
     });
   }
 
-  root.innerHTML = `${viewHead("Workforce planning")}<div id="workforce-table"></div>`;
+  root.innerHTML = `${viewHead("Workforce planning")}${panel("Workforce plan", `<div id="workforce-table"></div>`)}`;
 
   root.addEventListener("change", (event) => {
     const id = event.target.dataset.plan;

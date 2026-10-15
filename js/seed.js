@@ -161,16 +161,7 @@ export const seed = {
       reason: "Personal errand",
       status: "Needs review",
       submittedAt: "2026-10-09",
-      decision: {
-        final: "Needs review",
-        decidedBy: "Pending human",
-        decidedAt: "2026-10-09",
-        rules: [
-          { id: "balance", label: "Balance", status: "pass", detail: "3 day(s) available, 2 requested" },
-          { id: "coverage", label: "Team coverage", status: "pass", detail: "0 teammate(s) already off, limit 3" },
-        ],
-        ai: { decision: "review", confidence: 0.58, rationale: "Unpaid personal leave with minimal notice; a manager should confirm coverage.", flags: ["Short notice"], source: "ai", model: "gemma-4-26b-a4b-it" },
-      },
+      decision: { final: "Needs review", decidedBy: "Awaiting manager", decidedAt: null },
     },
     {
       id: "lr2",
@@ -183,16 +174,7 @@ export const seed = {
       reason: "Flu",
       status: "Approved",
       submittedAt: "2026-10-06",
-      decision: {
-        final: "Approved",
-        decidedBy: "Mara Ibarra",
-        decidedAt: "2026-10-06",
-        rules: [
-          { id: "balance", label: "Balance", status: "pass", detail: "7 day(s) available, 3 requested" },
-          { id: "document", label: "Supporting document", status: "flag", detail: "Medical certificate required for absences over 2 days" },
-        ],
-        ai: { decision: "review", confidence: 0.66, rationale: "Sick leave over two days needs a medical certificate on file.", flags: ["Medical certificate pending"], source: "ai", model: "gemma-4-26b-a4b-it" },
-      },
+      decision: { final: "Approved", decidedBy: "Mara Ibarra", decidedAt: "2026-10-06" },
     },
     {
       id: "lr1",
@@ -203,19 +185,9 @@ export const seed = {
       endDate: "2026-10-16",
       days: 5,
       reason: "Family trip",
-      status: "Auto-approved",
+      status: "Approved",
       submittedAt: "2026-09-28",
-      decision: {
-        final: "Auto-approved",
-        decidedBy: "System (AI)",
-        decidedAt: "2026-09-28",
-        rules: [
-          { id: "balance", label: "Balance", status: "pass", detail: "7 day(s) available, 5 requested" },
-          { id: "notice", label: "Notice period", status: "pass", detail: "Vacation prefers 5 day(s) notice, 14 given" },
-          { id: "coverage", label: "Team coverage", status: "pass", detail: "0 teammate(s) already off, limit 2" },
-        ],
-        ai: { decision: "approve", confidence: 0.86, rationale: "Routine vacation within balance, full notice given, team coverage is fine.", flags: [], source: "ai", model: "gemma-4-26b-a4b-it" },
-      },
+      decision: { final: "Approved", decidedBy: "Mara Ibarra", decidedAt: "2026-09-28" },
     },
   ],
 };

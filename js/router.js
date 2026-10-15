@@ -2,11 +2,12 @@ import { views } from "./views/index.js";
 
 const ROUTES = {
   dashboard: { title: "Dashboard", view: views.dashboardView },
+  assistant: { title: "Manager assistant", view: views.assistantView },
   workforce: { title: "Workforce planning", view: views.workforceView },
   recruitment: { title: "Recruitment", view: views.recruitmentView },
   onboarding: { title: "Onboarding", view: views.onboardingView },
   employees: { title: "Employees", view: views.employeesView },
-  leave: { title: "Leave automation", view: views.leaveView },
+  leave: { title: "Leave", view: views.leaveView },
   attendance: { title: "Time and attendance", view: views.attendanceView },
   payroll: { title: "Payroll", view: views.payrollView },
   performance: { title: "Performance", view: views.performanceView },

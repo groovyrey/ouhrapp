@@ -1,4 +1,5 @@
 import { dashboardView } from "./dashboard.js";
+import { assistantView } from "./assistant.js";
 import { workforceView } from "./workforce.js";
 import { recruitmentView } from "./recruitment.js";
 import { onboardingView } from "./onboarding.js";
@@ -14,6 +15,7 @@ import { adminView } from "./admin.js";
 
 export const views = {
   dashboardView,
+  assistantView,
   workforceView,
   recruitmentView,
   onboardingView,

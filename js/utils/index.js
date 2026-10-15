@@ -1,1 +1,1 @@
-export { escapeHtml, formatDate, formatMoney } from "./format.js";
+export { escapeHtml, formatDate, formatMoney, diffDays } from "./format.js";

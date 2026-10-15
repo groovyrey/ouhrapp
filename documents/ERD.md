@@ -48,13 +48,13 @@ erDiagram
   EMPLOYEES ||--o{ LEAVE_REQUESTS : files
   LEAVE_TYPES ||--o{ LEAVE_REQUESTS : typed_by
   LEAVE_REQUESTS ||--|| LEAVE_DECISIONS : decided_by
-  LEAVE_DECISIONS ||--o{ LEAVE_RULE_RESULTS : includes
-  LEAVE_DECISIONS ||--o| LEAVE_AI_ASSESSMENTS : includes
   TENANTS ||--o{ AUDIT_LOG : records
   USERS ||--o{ AUDIT_LOG : acts
   USERS ||--o{ NOTIFICATIONS : receives
   USERS ||--o{ SESSIONS : opens
   TENANTS ||--o{ INVITATIONS : issues
+  USERS ||--o{ ASSISTANT_CONVERSATIONS : opens
+  ASSISTANT_CONVERSATIONS ||--o{ ASSISTANT_MESSAGES : contains
 
   TENANTS {
     uuid id PK
@@ -249,23 +249,21 @@ erDiagram
     timestamptz decided_at
     string source
   }
-  LEAVE_RULE_RESULTS {
+  ASSISTANT_CONVERSATIONS {
     uuid id PK
-    uuid decision_id FK
-    string rule_id
-    string label
-    string status
-    string detail
+    uuid tenant_id FK
+    uuid user_id FK
+    string title
+    timestamptz last_activity_at
   }
-  LEAVE_AI_ASSESSMENTS {
+  ASSISTANT_MESSAGES {
     uuid id PK
-    uuid decision_id FK
-    string decision
-    numeric confidence
-    text rationale
-    json flags
+    uuid conversation_id FK
+    string role
+    text content
     string source
     string model
+    timestamptz created_at
   }
   AUDIT_LOG {
     uuid id PK
@@ -374,7 +372,7 @@ erDiagram
 | policies | id, name, body | Company policy documents. |
 | policy_acknowledgments | id, policy_id, employee_id, acknowledged_at | Per-employee acknowledgment. Replaces the prototype counter. |
 
-### Leave automation
+### Leave
 
 | Entity | Key fields | Notes |
 | --- | --- | --- |
@@ -382,9 +380,16 @@ erDiagram
 | blackout_dates | id, label, from_date, to_date | Optionally per department. |
 | leave_balances | id, employee_id, leave_type_id, period, accrued, used | Remaining is computed as accrued minus used. |
 | leave_requests | id, employee_id, leave_type_id, start_date, end_date, days, reason, status, submitted_at | A filed request. |
-| leave_decisions | id, leave_request_id, final_status, decided_by, decided_at, source | Immutable record of the outcome. `source` is rules, ai, human, or fallback. |
-| leave_rule_results | id, decision_id, rule_id, label, status, detail | One row per check: balance, notice, document, blackout, coverage. Status is pass, flag, or fail. |
-| leave_ai_assessments | id, decision_id, decision, confidence, rationale, flags, source, model | The AI output, stored alongside the deterministic results. |
+| leave_decisions | id, leave_request_id, final_status, decided_by, decided_at, source | Immutable record of the outcome. `source` is human (a manager decided) or system (a manager-approved batch action). |
+
+### Manager assistant
+
+| Entity | Key fields | Notes |
+| --- | --- | --- |
+| assistant_conversations | id, tenant_id, user_id, title, last_activity_at | One thread per manager. Scoped to the tenant. |
+| assistant_messages | id, conversation_id, role, content, source, model, created_at | Turn history. `role` is user or assistant; `source` is ai or fallback; `model` records the model that answered. |
+
+The assistant holds no separate business data: its context is derived on demand from the other tables. Only the conversation history is persisted.
 
 ### Cross-cutting
 
@@ -406,10 +411,10 @@ erDiagram
 | employees to employees | 1 to many | A manager manages many employees (self reference). |
 | employees to leave_requests | 1 to many | An employee files many leave requests. |
 | leave_requests to leave_decisions | 1 to 1 | Each request has exactly one decision record. |
-| leave_decisions to leave_rule_results | 1 to many | A decision includes many rule results. |
-| leave_decisions to leave_ai_assessments | 1 to 0 or 1 | A decision may include one AI assessment. |
 | employees to leave_balances | 1 to many | An employee holds one balance per leave type. |
 | leave_types to leave_balances | 1 to many | A leave type applies to many balances. |
+| users to assistant_conversations | 1 to many | A manager opens many assistant threads. |
+| assistant_conversations to assistant_messages | 1 to many | A conversation contains many turns. |
 | candidates to employees | 1 to 0 or 1 | A hired candidate becomes one employee. |
 | payroll_runs to payslips | 1 to many | A run produces one payslip per employee. |
 | policies to policy_acknowledgments | 1 to many | A policy is tracked per employee. |
@@ -420,7 +425,8 @@ erDiagram
 The prototype holds whole collections in `localStorage` as plain arrays. Most map one to one to a target table. The differences are worth noting:
 
 - `onboardings` embed their `tasks` array. In the target, `onboarding_tasks` is a separate table.
-- `leaveRequests` embed a single `decision` object that itself embeds `rules` and `ai`. In the target these become `leave_decisions`, `leave_rule_results`, and `leave_ai_assessments` so the decision is immutable and queryable.
+- `leaveRequests` embed a single `decision` object holding the final status and who decided it. In the target this becomes the `leave_decisions` row; the AI feature no longer runs, so there are no rule-result or AI-assessment rows.
+- `assistant` history is not in the seed. The prototype keeps chat turns in `localStorage` under `ouhrapp:assistant:v1`. In the target they become `assistant_conversations` and `assistant_messages`, scoped by tenant and user.
 - `policies` store an `acknowledged` counter. In the target this becomes `policy_acknowledgments`, one row per employee.
 - `candidates` store only the current stage. In the target, `candidate_stage_events` records each transition.
 - `users` and `employees` are separate and are not linked in the prototype. In the target, `employees` links to a `users` row through `memberships`.

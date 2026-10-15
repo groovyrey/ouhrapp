@@ -1,5 +1,5 @@
 import { getOnboardings, toggleTask } from "../store.js";
-import { viewHead } from "../components/index.js";
+import { viewHead, card, cardHead, cards } from "../components/index.js";
 import { escapeHtml, formatDate } from "../utils/index.js";
 
 export function onboardingView(root) {
@@ -18,24 +18,21 @@ export function onboardingView(root) {
             </label>`,
           )
           .join("");
-        return `
-        <article class="card">
-          <header class="card__head">
-            <div>
-              <strong>${escapeHtml(onboarding.name)}</strong>
-              <span class="muted">${escapeHtml(onboarding.role)}</span>
-            </div>
-            <span class="num muted">${formatDate(onboarding.startDate)}</span>
-          </header>
+        const head = cardHead(escapeHtml(onboarding.name), {
+          meta: escapeHtml(onboarding.role),
+          action: `<span class="num muted">${formatDate(onboarding.startDate)}</span>`,
+        });
+        return card(
+          `${head}
           <div class="progress"><div class="progress__bar" style="width:${percent}%"></div></div>
           <p class="muted">${done} of ${total} tasks done</p>
-          <div class="checks">${tasks}</div>
-        </article>`;
+          <div class="checks">${tasks}</div>`,
+        );
       })
       .join("");
   }
 
-  root.innerHTML = `${viewHead("Onboarding")}<div class="cards" id="onboarding-list"></div>`;
+  root.innerHTML = `${viewHead("Onboarding")}${cards("onboarding-list")}`;
 
   root.addEventListener("change", (event) => {
     const box = event.target.closest("input[data-task]");

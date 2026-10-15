@@ -1,18 +1,18 @@
 # Use Case
 
-This document describes what each actor does in ouhrapp. It covers the actors, a use case diagram, a summary of every use case, and full descriptions for the key ones, with emphasis on the leave automation flow.
+This document describes what each actor does in ouhrapp. It covers the actors, a use case diagram, a summary of every use case, and full descriptions for the key ones, with emphasis on the manager assistant flow.
 
 ## Actors
 
 | Actor | Type | Description |
 | --- | --- | --- |
 | Employee | Primary | Staff member. Submits leave, clocks time, acknowledges policy, views own data. |
-| Manager | Primary | Approves leave and time, plans headcount, runs reviews for the team. |
+| Manager | Primary | Decides leave and time, plans headcount, runs reviews for the team, and asks the assistant for advice. |
 | HR Officer | Primary | Manages employee records, onboarding, compensation, relations, recruitment. |
 | Payroll Officer | Primary | Prepares payroll runs and payslips. |
 | Administrator | Primary | Manages users, roles, tenant settings, and reviews the audit log. |
 | Applicant | Primary | External candidate who applies and moves through the pipeline. |
-| AI Service | Secondary | Evaluates a leave request and returns a structured assessment. |
+| AI Service | Secondary | Answers a manager question using a non-private snapshot of the data. |
 | Email and Notification Service | Secondary | Delivers invites, approvals, and alerts. |
 | Payroll Provider | Secondary | Owns tax, deductions, payslip generation, and disbursement. |
 
@@ -43,8 +43,9 @@ flowchart LR
   APP --> UC05(Apply to a job)
   HRO --> UC06(Run onboarding)
   EMP --> UC07(Submit leave request)
-  MGR --> UC09(Review leave decision)
-  HRO --> UC09
+  MGR --> UC08(Decide leave request)
+  HRO --> UC08
+  MGR --> UC09(Ask the assistant)
   EMP --> UC10(Clock in and out)
   EMP --> UC11(Log manual time)
   PAYO --> UC12(Run payroll draft)
@@ -57,9 +58,8 @@ flowchart LR
   HRO --> UC17
   ADM --> UC18(Administer users and roles)
 
-  UC07 -.->|includes| UC08(Evaluate leave request)
-  UC09 -.->|includes| UC08
-  UC08 -.->|uses| AI
+  UC08 -.->|extends| UC07
+  UC09 -.->|uses| AI
 ```
 
 ## Summary
@@ -72,9 +72,9 @@ flowchart LR
 | UC-04 | Manage candidate pipeline | HR Officer | Recruitment |
 | UC-05 | Apply to a job | Applicant | Recruitment |
 | UC-06 | Run onboarding checklist | HR Officer | Onboarding |
-| UC-07 | Submit leave request | Employee | Leave automation |
-| UC-08 | Evaluate leave request | System (rules and AI) | Leave automation |
-| UC-09 | Review and override leave decision | Manager, HR Officer | Leave automation |
+| UC-07 | Submit leave request | Employee | Leave |
+| UC-08 | Decide leave request | Manager, HR Officer | Leave |
+| UC-09 | Ask the assistant | Manager | Assistant |
 | UC-10 | Clock in and out | Employee | Time and attendance |
 | UC-11 | Log manual time entry | Employee, Manager | Time and attendance |
 | UC-12 | Run payroll draft | Payroll Officer | Payroll |
@@ -127,46 +127,50 @@ In the prototype this is a client-side gate with the account `admin` and passwor
 - Preconditions: the user is signed in and has a leave balance.
 - Trigger: the user submits the leave form.
 - Main flow:
-  1. The user picks a leave type, start date, end date, and reason.
-  2. The system computes the number of days.
-  3. The system runs UC-08 to evaluate the request.
-  4. The system shows the outcome and stores the request with its decision.
+  1. The user picks an employee, a leave type, start date, end date, and reason.
+  2. The system computes the number of days from the inclusive date range.
+  3. The system stores the request with status `Needs review` and no decision yet.
+  4. The request appears in the leave queue for a manager to decide.
 - Alternate flows:
   - 2a. End date precedes start date. The system rejects the input.
-  - 3a. A hard rule fails. The request is rejected and the reason is shown.
-- Postconditions: a leave request and its decision exist, and the employee is notified.
+  - 2b. A date is missing. The system does not create the request.
+- Postconditions: a leave request exists in `Needs review`. Nothing is decided automatically.
 
-### UC-08 Evaluate leave request
-
-- Actor: System, using the AI Service as a secondary actor.
-- Goal: produce a decision for a request.
-- Preconditions: a request exists with its employee, type, and dates.
-- Trigger: included by UC-07 and UC-09.
-- Main flow:
-  1. The system runs the deterministic checks: balance, notice period, supporting document, blackout window, and team coverage. Each returns pass, flag, or fail.
-  2. If any check fails, the system rejects and stops.
-  3. Otherwise the system builds a prompt with the request, policy, and coverage, and calls the AI Service.
-  4. The AI Service returns a decision, confidence, rationale, and flags as strict JSON.
-  5. The system blends the results and sets the final status: Approved, Rejected, or Needs review.
-- Alternate flows:
-  - 3a. A flag exists or confidence is below the bar. The system routes to Needs review.
-  - 4a. The AI call times out or returns unparseable output. The system falls back to a rules-only decision marked `source: fallback`.
-- Postconditions: an immutable decision record exists with rule results and, when used, the AI assessment. The AI never overrides a hard rule failure.
-
-### UC-09 Review and override leave decision
+### UC-08 Decide leave request
 
 - Actor: Manager, HR Officer.
-- Goal: resolve a request flagged for human review, or override an automatic decision.
-- Preconditions: a request is in Needs review, or a decision exists to be changed.
+- Goal: approve or reject a filed request.
+- Preconditions: a request is in `Needs review`.
 - Trigger: the reviewer opens the leave queue.
 - Main flow:
-  1. The reviewer opens a request and sees the rule results and the AI rationale.
+  1. The reviewer opens the request and sees the type, dates, days, reason, and remaining balance.
   2. The reviewer approves or rejects.
-  3. The system appends a human decision with the actor and timestamp and updates the request status.
-  4. The employee is notified.
+  3. The system records the final status with the deciding actor and timestamp.
+  4. On approval the system commits the days against the employee's leave balance.
+  5. The change is written to the audit log.
 - Alternate flows:
-  - 1a. The request is already resolved. The reviewer can still override, and the override is recorded as a new decision.
-- Postconditions: the final status reflects the human decision, and the change is audited.
+  - 1a. The reviewer is unsure. They can open the assistant (UC-09) for the policy and coverage picture first.
+  - 4a. The remaining balance is short. The days are still committed, and the leave view shows the negative remaining balance.
+- Postconditions: the request has a final status and an attributable decision record.
+
+### UC-09 Ask the assistant
+
+- Actor: Manager.
+- Goal: get advice on a decision across any module.
+- Preconditions: the user is signed in as a manager.
+- Trigger: the user sends a message in the assistant view.
+- Main flow:
+  1. The user types a question or picks a suggested prompt.
+  2. The system appends the question to the conversation history.
+  3. The system builds a snapshot of non-private data across every module: headcount and gaps, recruitment stages, onboarding progress, attendance hours, payroll run summaries, performance ratings, salary bands, relations counts, compliance acknowledgments, and leave requests and balances.
+  4. The system sends the snapshot, the recent turns, and the system prompt to the AI Service.
+  5. The AI Service returns an answer with a recommendation and its reason.
+  6. The system renders the answer and stores the turn.
+- Alternate flows:
+  - 3a. The question touches private data, for example an individual salary or a case narrative. The system refuses and offers an aggregate or non-private angle instead.
+  - 4a. The AI Service times out, errors, or returns an empty reply. The system answers with a deterministic local summary of the same snapshot, marked as a fallback.
+  - 4b. The question is about data not present in the snapshot. The system says it is not available rather than inventing it.
+- Postconditions: the conversation history has one more turn. No business data is changed; the assistant only advises and the manager still decides in UC-08.
 
 ### UC-12 Run payroll draft
 
@@ -186,6 +190,8 @@ In the prototype this is a client-side gate with the account `admin` and passwor
 
 ## Relationships
 
-- Include: UC-07 and UC-09 both include UC-08. Sign in (UC-01) is a precondition shared by all other use cases.
-- Extend: UC-09 extends UC-08 when a human overrides an automatic outcome.
-- Secondary actors: UC-08 uses the AI Service, UC-12 uses the Payroll Provider, and approval and invite flows use the Email and Notification Service.
+- Precondition: sign in (UC-01) is required by every other use case.
+- Extend: UC-08 extends UC-07 by applying the manager's decision to a submitted request.
+- Secondary actors: UC-09 uses the AI Service, UC-12 uses the Payroll Provider, and approval and invite flows use the Email and Notification Service.
+
+The assistant is the only place the AI Service appears. It advises on decisions; it never changes data, so every write still goes through its owning module.

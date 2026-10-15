@@ -1,5 +1,5 @@
 import { getSalaryBands, getEmployees } from "../store.js";
-import { renderTable, viewHead } from "../components/index.js";
+import { renderTable, viewHead, panel } from "../components/index.js";
 import { escapeHtml, formatMoney } from "../utils/index.js";
 
 export function compensationView(root) {
@@ -20,9 +20,7 @@ export function compensationView(root) {
 
   root.innerHTML = `
     ${viewHead("Compensation")}
-    <h2 class="subhead">Salary bands</h2>
-    ${renderTable({ columns: ["Department", "Level", "Min", "Mid", "Max"], rows: bands })}
-    <h2 class="subhead">Current salaries</h2>
-    ${renderTable({ columns: ["Employee", "Department", "Title", "Salary"], rows: salaries })}
+    ${panel("Salary bands", renderTable({ columns: ["Department", "Level", "Min", "Mid", "Max"], rows: bands }))}
+    ${panel("Current salaries", renderTable({ columns: ["Employee", "Department", "Title", "Salary"], rows: salaries }))}
   `;
 }

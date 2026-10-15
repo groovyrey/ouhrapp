@@ -5,7 +5,7 @@ import {
   updateEmployee,
   removeEmployee,
 } from "../store.js";
-import { renderTable } from "../components/index.js";
+import { renderTable, viewHead, field, emptyState, panel } from "../components/index.js";
 import { escapeHtml, formatDate } from "../utils/index.js";
 
 const STATUSES = ["Active", "On leave", "Inactive"];
@@ -16,16 +16,16 @@ export function employeesView(root) {
   let query = "";
 
   root.innerHTML = `
-    <header class="view-head">
-      <h1>Employees</h1>
-      <button class="btn btn--primary" type="button" data-action="new"><svg class="icon" aria-hidden="true"><use href="#icon-user-plus"></use></svg>Add employee</button>
-    </header>
+    ${viewHead(
+      "Employees",
+      `<button class="btn btn--primary" type="button" data-action="new"><svg class="icon" aria-hidden="true"><use href="#icon-user-plus"></use></svg>Add employee</button>`,
+    )}
 
     <form class="form" id="employee-form" hidden>
-      ${field("firstName", "First name", "text")}
-      ${field("lastName", "Last name", "text")}
-      ${field("email", "Email", "email")}
-      ${field("title", "Title", "text")}
+      ${field("First name", "firstName")}
+      ${field("Last name", "lastName")}
+      ${field("Email", "email", { type: "email" })}
+      ${field("Title", "title")}
       <label class="field">Department
         <select class="select" name="department">
           ${getDepartments().map((d) => `<option>${d}</option>`).join("")}
@@ -45,21 +45,14 @@ export function employeesView(root) {
       </div>
     </form>
 
-    <div class="toolbar">
+    ${panel("Directory", `<div class="toolbar">
       <input class="input" id="employee-search" type="search" placeholder="Search employees" />
     </div>
-
-    <div id="employee-table"></div>
+    <div id="employee-table"></div>`)}
   `;
 
   const form = root.querySelector("#employee-form");
   const table = root.querySelector("#employee-table");
-
-  function field(name, label, type) {
-    return `<label class="field">${label}
-      <input class="input" type="${type}" name="${name}" required />
-    </label>`;
-  }
 
   function paint() {
     const needle = query.trim().toLowerCase();
@@ -85,7 +78,7 @@ export function employeesView(root) {
 
     table.innerHTML = rows.length
       ? renderTable({ columns: COLUMNS, rows })
-      : `<p class="muted">No employees match.</p>`;
+      : emptyState("No employees match.");
   }
 
   function openForm(id = null) {

@@ -8,9 +8,11 @@ export function renderTable({ columns, rows }) {
     .join("");
 
   return `
-    <table class="table">
-      <thead><tr>${head}</tr></thead>
-      <tbody>${body}</tbody>
-    </table>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr>${head}</tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
   `;
 }

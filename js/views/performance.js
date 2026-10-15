@@ -1,5 +1,5 @@
 import { getReviews, setReviewRating } from "../store.js";
-import { renderTable, viewHead } from "../components/index.js";
+import { renderTable, viewHead, panel } from "../components/index.js";
 import { escapeHtml } from "../utils/index.js";
 
 const RATINGS = [1, 2, 3, 4, 5];
@@ -20,7 +20,7 @@ export function performanceView(root) {
     });
   }
 
-  root.innerHTML = `${viewHead("Performance")}<div id="reviews-table"></div>`;
+  root.innerHTML = `${viewHead("Performance")}${panel("Reviews", `<div id="reviews-table"></div>`)}`;
 
   root.addEventListener("change", (event) => {
     const id = event.target.dataset.review;

@@ -1,5 +1,5 @@
 import { getUsers, addUser, removeUser, setUserRole, resetData } from "../store.js";
-import { renderTable, viewHead, field } from "../components/index.js";
+import { renderTable, viewHead, field, panel } from "../components/index.js";
 import { escapeHtml } from "../utils/index.js";
 
 const ROLES = ["Administrator", "HR", "Payroll officer", "Manager", "Employee"];
@@ -30,7 +30,7 @@ export function adminView(root) {
         <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-user-plus"></use></svg>Add user</button>
       </div>
     </form>
-    <div id="users-table"></div>
+    ${panel("Users", `<div id="users-table"></div>`)}
   `;
 
   root.querySelector("#user-form").addEventListener("submit", (event) => {

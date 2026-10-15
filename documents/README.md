@@ -1,6 +1,6 @@
 # ouhrapp
 
-An HR management prototype covering the full employee lifecycle: workforce planning, recruitment, onboarding, employee records, leave automation, time and attendance, payroll, performance, compensation, employee relations, reporting, and administration.
+An HR management prototype covering the full employee lifecycle: workforce planning, recruitment, onboarding, employee records, a manager decision-support assistant, leave, time and attendance, payroll, performance, compensation, employee relations, reporting, and administration.
 
 This doc covers the current prototype, how it is built as a single-page app, and where it is headed. The full production stack and per-module requirements live in `requirements.txt`.
 
@@ -8,7 +8,7 @@ This doc covers the current prototype, how it is built as a single-page app, and
 
 Prototype. Static HTML, CSS, and JavaScript. No framework, no build step, no dependencies. Runs from `file://` or any static host.
 
-All data is mock data held in the browser. Mutations persist to `localStorage`. Nothing is sent to a server except the optional leave-evaluation call described below.
+All data is mock data held in the browser. Mutations persist to `localStorage`. Nothing is sent to a server except the optional assistant call described below.
 
 ## Quick start
 
@@ -35,11 +35,12 @@ Because the check runs in the browser, this only gates the demo UI. The real app
 Each sidebar entry maps to one view in `js/views/`:
 
 - Dashboard: headcount snapshot and per-department counts.
+- Assistant: a manager-facing chat that answers questions across every module using non-private data (see below).
 - Workforce planning: planned vs actual headcount per department, with an editable plan target and gap.
 - Recruitment: kanban pipeline (Applied, Screening, Interview, Offer, Hired) with add and move.
 - Onboarding: template task checklists per new hire with a progress bar.
 - Employees: directory table with create, edit, delete, and search.
-- Leave automation: request intake plus the two-stage rules and AI evaluation (see below).
+- Leave: request intake and manager approval.
 - Time and attendance: clock in and out, manual time entry, running total.
 - Payroll: monthly run drafts computed from active salaries.
 - Performance: review cycles with editable ratings.
@@ -104,9 +105,9 @@ js/nav.js               mobile drawer, focus trap, active-link highlight
 js/store.js             state and localStorage persistence
 js/seed.js              mock seed data and shared constants
 js/views/               one file per module
-js/components/          shared renderers: table, bars, form
-js/services/            leave rules, leave AI, leave decision
-js/utils/               escapeHtml, formatDate, formatMoney
+js/components/          shared renderers: table, bars, form, card
+js/services/            assistant context builder and chat client
+js/utils/               escapeHtml, formatDate, formatMoney, diffDays
 assets/                 images and static files
 ```
 
@@ -120,7 +121,7 @@ Tradeoffs, by design for a prototype:
 
 - Full region re-render on change rather than a virtual DOM diff.
 - Local, single-user state, so there is no sync or conflict handling.
-- The AI evaluation depends on an external endpoint and degrades to rules-only when it is unavailable.
+- The assistant depends on an external endpoint and degrades to a local snapshot when it is unavailable.
 
 ### 7. Styling and design language
 
@@ -130,47 +131,43 @@ Three stylesheets, layered: tokens and base, then shell, then view primitives. T
 - Type: Geist for UI, JetBrains Mono for numerals and micro labels, Instrument Serif available via the `.serif` utility.
 - Icons: an inline SVG sprite of Lucide symbols in `index.html`. Icons use `stroke="currentColor"`, so they inherit color and size from context.
 
-## Leave automation
+## Manager assistant
 
-This is the one module with real logic beyond CRUD. A request is evaluated in two stages, then routed.
+This is the one module with logic beyond CRUD. It is a manager-facing chat that helps with decisions across people, hiring, onboarding, leave, attendance, payroll, performance, compensation, compliance, and reports. It is not leave-specific.
 
-### Stage 1: deterministic rules (`js/services/leaveRules.js`)
+### Context builder (`js/services/assistantContext.js`)
 
-`evaluateRules` checks:
+`buildContext()` reads the store and returns a snapshot of everything that is not private and that helps a manager decide:
 
-- Balance: remaining vs requested days.
-- Notice period: days of notice given vs the leave type's `noticeDays`.
-- Supporting document: required for absences over two days when the type sets `requiresDoc`.
-- Blackout windows: overlap with configured company blackout dates.
-- Team coverage: same-department peers already off for overlapping dates vs the type's `maxConcurrent`.
+- People: name, department, title, status, start date.
+- Headcount totals and per-department active counts, plus planned vs actual gaps.
+- Recruitment by stage, onboarding progress and remaining tasks.
+- Attendance hours and overtime counts per employee.
+- Payroll run periods, headcount, and status (aggregates only, no per-person pay).
+- Performance ratings and average, and compensation bands (structure, not personal pay).
+- Relations counts by type and status, and compliance acknowledgment counts.
+- Leave types, blackout dates, pending requests, and balances.
 
-Each check returns `pass`, `flag`, or `fail`. Any `fail` is a hard fail. `flags` are soft concerns for a human.
+Private data is deliberately excluded: individual salaries, contact details, government ids, and confidential case narratives.
 
-### Stage 2: AI judgement (`js/services/leaveAi.js`)
+### Chat client (`js/services/assistant.js`)
 
-The rules result, coverage, and policy are sent as a prompt to a Gemini endpoint on a Cloudflare Worker:
+The snapshot, the system prompt, and the recent conversation go to a Gemini endpoint on a Cloudflare Worker:
 
 ```
 POST https://worker8651.reymartcenteno03.workers.dev/api/groovyrey/gemini
-body: { prompt, system, temperature: 0, json: true, maxTokens: 400 }
+body: { prompt, system, temperature: 0.2, json: false, maxTokens: 700 }
 ```
 
-The system prompt forces a strict JSON reply: `decision` (approve, reject, or review), `confidence` (0 to 1), `rationale`, and `flags`. The client extracts the JSON object, clamps and normalizes the fields, and has a 20 second timeout.
+The system prompt tells the model to advise with a clear recommendation and reason, to use only the snapshot, to never invent data, and to refuse private data while offering a non-private angle. History is kept in `localStorage` under `ouhrapp:assistant:v1` and capped at 60 messages. The client has a 20 second timeout.
 
-If the endpoint is unreachable, times out, or returns an unparseable reply, it falls back to a rules-only decision marked `source: "fallback"`. The AI never approves past a hard rule failure.
+If the endpoint is unreachable, times out, or returns an empty reply, it falls back to a deterministic local summary of the snapshot marked `source: "fallback"`.
 
-For local development the endpoint allows only the `groovyrey.github.io` and `localhost` origins.
+For local development the endpoint allows only the `groovyrey.github.io` and `localhost` origins. The assistant advises; the manager decides.
 
-### Decision router (`js/services/leaveDecision.js`)
+## Leave
 
-`decide(evaluation, ai)` resolves the final status:
-
-- Hard rule failure: `Rejected`, decided by the rules engine.
-- AI approve with confidence at least 0.75 and no flags: `Auto-approved`.
-- AI reject with confidence at least 0.75: `Rejected`.
-- Anything else: `Needs review` for a human.
-
-The view shows every rule result, the AI recommendation with confidence and rationale, and, for requests still waiting, Approve and Reject override buttons.
+`js/views/leave.js` files a request (employee, type, dates, reason) with status `Needs review`, and the manager approves or rejects it. Approval commits the days against the employee's balance. Leave types still encode policy (notice days, document rules, concurrency limits) and are surfaced to the assistant as context, but the app no longer auto-decides.
 
 ## Data model
 

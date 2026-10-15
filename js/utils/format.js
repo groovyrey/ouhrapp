@@ -30,3 +30,12 @@ export function formatMoney(value) {
     maximumFractionDigits: 0,
   }).format(value || 0);
 }
+
+const DAY = 86400000;
+
+export function diffDays(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
+  return Math.max(1, Math.round((end - start) / DAY) + 1);
+}

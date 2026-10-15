@@ -1,5 +1,5 @@
 import { getPayrollRuns, runPayroll } from "../store.js";
-import { renderTable, viewHead } from "../components/index.js";
+import { renderTable, viewHead, panel } from "../components/index.js";
 import { escapeHtml, formatMoney } from "../utils/index.js";
 
 export function payrollView(root) {
@@ -20,8 +20,9 @@ export function payrollView(root) {
 
   root.innerHTML = `
     ${viewHead("Payroll", `<button class="btn btn--primary" id="run-payroll" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-play"></use></svg>Run payroll</button>`)}
-    <p class="muted">Payroll runs are computed from active salaries. Real disbursement stays with a payroll provider.</p>
-    <div id="payroll-table"></div>
+    ${panel("Payroll runs", `<div id="payroll-table"></div>`, {
+      meta: "Computed from active salaries. Real disbursement stays with a payroll provider.",
+    })}
   `;
 
   root.querySelector("#run-payroll").addEventListener("click", () => {

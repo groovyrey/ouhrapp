@@ -169,7 +169,7 @@ export function setUserRole(id, role) {
   }
 }
 
-// Leave automation
+// Leave
 export const getLeaveTypes = () => state.leaveTypes;
 export const getLeaveRequests = () => state.leaveRequests;
 export const getLeaveBalances = () => state.leaveBalances;

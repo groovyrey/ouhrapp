@@ -1,5 +1,5 @@
 import { getCases, setCaseStatus, getPolicies, acknowledgePolicy } from "../store.js";
-import { renderTable, viewHead } from "../components/index.js";
+import { renderTable, viewHead, panel } from "../components/index.js";
 import { escapeHtml, formatDate } from "../utils/index.js";
 
 const STATUSES = ["Open", "Investigating", "Resolved"];
@@ -36,10 +36,8 @@ export function relationsView(root) {
 
   root.innerHTML = `
     ${viewHead("Relations and compliance")}
-    <h2 class="subhead">Cases</h2>
-    <div id="cases-table"></div>
-    <h2 class="subhead">Policies</h2>
-    <div id="policies-table"></div>
+    ${panel("Cases", `<div id="cases-table"></div>`)}
+    ${panel("Policies", `<div id="policies-table"></div>`)}
   `;
 
   root.addEventListener("change", (event) => {

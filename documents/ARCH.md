@@ -10,16 +10,14 @@ The prototype runs mostly in the browser. A static single-page app holds all sta
 
 ```mermaid
 architecture-beta
-    group cloudflare(cloud)[Cloudflare]
-    service worker(server)[Assistant Worker] in cloudflare
-    service d1(database)[D1 rate limits] in cloudflare
-
     service browser(internet)[Browser SPA]
+    service worker(server)[Assistant Worker]
+    service d1(database)[D1 rate limits]
     service gemini(cloud)[Gemini API]
 
-    browser:R --> L:worker
+    browser:B --> T:worker
     worker:R --> L:gemini
-    worker:B --> T:d1
+    worker:L --> R:d1
 ```
 
 The browser app is layered: `main.js` boots auth, the shell, and the router; views compose shared components and read and write through the store, which persists to `localStorage`; services isolate the redacted assistant context and the network call. `MIGRATION.md` maps this store, service, and view layering onto API, service, and UI layering in production.

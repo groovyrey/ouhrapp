@@ -29,29 +29,29 @@ The browser app is layered: `main.js` boots auth, the shell, and the router; vie
 The full build moves rendering, data, and storage server side. A Next.js app on Vercel serves the UI and hosts route handlers and server actions on the Node runtime. Drizzle talks to PostgreSQL with row-level security per tenant. Background jobs handle schedules, reminders, and exports. Cloudflare holds object storage, cache, and the assistant Worker; the Gemini key stays server side.
 
 ```mermaid
+---
+config:
+  architecture:
+    idealEdgeLengthMultiplier: 0.7
+    nodeSeparation: 45
+---
 architecture-beta
-    group vercel(cloud)[Vercel]
-    service app(server)[Next.js app] in vercel
-    service jobs(server)[Background jobs] in vercel
-
-    group cloudflare(cloud)[Cloudflare]
-    service worker(server)[Assistant Worker] in cloudflare
-    service kv(server)[KV cache and rate limit] in cloudflare
-    service r2(disk)[R2 object storage] in cloudflare
-
-    group data(cloud)[Managed data]
-    service db(database)[PostgreSQL] in data
-
     service browser(internet)[Browser PWA]
+    service app(server)[Next.js app]
+    service jobs(server)[Background jobs]
+    service db(database)[PostgreSQL]
+    service storage(disk)[R2 object storage]
+    service kv(server)[KV cache and rate limit]
+    service worker(server)[Assistant Worker]
     service gemini(cloud)[Gemini API]
 
-    browser:R --> L:app
-    app:R --> L:db
-    app:B --> T:r2
-    app:T --> B:kv
-    app:R --> L:worker
+    browser:B --> T:app
+    app:B --> T:db
+    app:L --> R:storage
+    app:R --> L:kv
+    app:T --> B:worker
     worker:R --> L:gemini
-    jobs:R --> L:db
+    jobs:L --> R:db
 ```
 
 ## Stack

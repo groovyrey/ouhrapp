@@ -23,7 +23,7 @@ function bubble(message) {
   const notice = failed
     ? `<span class="chat__error">Assistant unavailable: ${escapeHtml(message.error || "the request failed")}. Showing a local snapshot.</span>`
     : "";
-  const meta = `<span class="chat__meta">${escapeHtml(failed ? "offline snapshot" : message.model || "assistant")}</span>`;
+  const meta = failed ? `<span class="chat__meta">offline snapshot</span>` : "";
   return `<div class="chat__row chat__row--bot"><div class="chat__bubble">${notice}${escapeHtml(message.text)}</div>${meta}</div>`;
 }
 

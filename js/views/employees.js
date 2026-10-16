@@ -22,10 +22,10 @@ export function employeesView(root) {
     )}
 
     <form class="form" id="employee-form" hidden>
-      ${field("First name", "firstName")}
-      ${field("Last name", "lastName")}
-      ${field("Email", "email", { type: "email" })}
-      ${field("Title", "title")}
+      ${field("First name", "firstName", { placeholder: "John" })}
+      ${field("Last name", "lastName", { placeholder: "Doe" })}
+      ${field("Email", "email", { type: "email", placeholder: "name@ouhrapp.com" })}
+      ${field("Title", "title", { placeholder: "HR Specialist" })}
       <label class="field">Department
         <select class="select" name="department">
           ${getDepartments().map((d) => `<option>${d}</option>`).join("")}

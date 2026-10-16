@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OUHRAPP</title>
   <meta name="description" content="OUHRAPP is an HR management prototype covering workforce planning, recruitment, payroll, and reporting." />
-  <meta name="theme-color" content="#fffdf8" />
+  <meta name="theme-color" content="#f3f0e8" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23e3353b'/%3E%3Ctext x='16' y='23' font-family='Arial' font-size='19' font-weight='700' text-anchor='middle' fill='%23fff'%3Eo%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/app-shell.css" />
   <link rel="stylesheet" href="css/views.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/assistant.css" />
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -71,7 +73,7 @@
         <span class="topbar__avatar" aria-hidden="true"><svg class="icon"><use href="#icon-user"></use></svg></span>
         <span class="topbar__role" id="topbar-user">Admin</span>
       </span>
-      <button class="btn btn--ghost topbar__signout" id="signout" type="button">Sign out</button>
+      <button class="btn btn--ghost topbar__signout" id="signout" type="button" aria-label="Sign out"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg>Sign out</button>
     </div>
   </header>
 

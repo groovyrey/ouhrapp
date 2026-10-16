@@ -1,4 +1,5 @@
 import { buildContext } from "./assistantContext.js";
+import { getTool, toolList } from "./tools.js";
 
 export const ASSISTANT_ENDPOINT =
   "https://worker8651.reymartcenteno03.workers.dev/api/groovyrey/gemini";
@@ -6,16 +7,6 @@ export const ASSISTANT_ENDPOINT =
 const STORAGE_KEY = "ouhrapp:assistant:v1";
 const HISTORY = 8;
 const KEEP = 60;
-
-const SYSTEM = [
-  "You are the OUHRAPP manager assistant for a Philippine HR team.",
-  "Help the manager decide: summarize, compare, flag risks, and recommend options across people, hiring, onboarding, attendance, leave, payroll, performance, compensation, compliance, and reports.",
-  "Use only the HR data snapshot in the prompt. Never invent numbers or people. If something is not in the snapshot, say it is not available.",
-  "The snapshot already excludes private data: individual salaries, contact details, government ids, and confidential case narratives.",
-  "If asked for private data, say it is confidential and offer a non-private or aggregate angle instead.",
-  "Be concise: at most 120 words, plain text, no markdown, short lines.",
-  "You advise; the manager decides. Give a clear recommendation and the reason.",
-].join(" ");
 
 let messages = load();
 
@@ -97,76 +88,290 @@ export function fallbackDigest(context) {
   ].join("\n");
 }
 
+const MAX_ROUNDS = 6;
+
+function historyText() {
+  return messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .slice(-HISTORY)
+    .map((m) => `${m.role === "user" ? "Manager" : "Assistant"}: ${m.text}`)
+    .join("\n");
+}
+
+function toolSystem() {
+  return [
+    "You are the OUHRAPP manager assistant for a Philippine HR team.",
+    "Your purpose is to help the manager make decisions: summarize the situation, compare options, flag risks, and recommend a clear choice with the reason. You advise; the manager decides.",
+    "You read live HR data ONLY by calling the tools below. Never invent numbers or people.",
+    "Call only the tools you need (at most a few), then answer.",
+    "If asked for private data (individual salaries, contacts, government ids), say it is confidential and give an aggregate instead.",
+    "Respond ONLY with valid JSON, no markdown and no prose outside the JSON. The answer value itself IS Markdown.",
+    'To call a tool reply exactly: {"tool":"<name>","args":{}}',
+    'When you have enough data reply: {"answer":"<your decision-focused answer in Markdown, max 120 words: short paragraphs, bullet lists where useful, **bold** for key figures, ending with your recommendation>"}',
+    "Available tools:",
+    toolList(),
+  ].join("\n");
+}
+
+async function callModel(system, prompt, signal) {
+  const res = await fetch(ASSISTANT_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt,
+      system,
+      temperature: 0.2,
+      json: true,
+      maxTokens: 2048,
+    }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`endpoint ${res.status}`);
+
+  const reader = res.body?.getReader?.();
+  let text = "";
+  if (reader) {
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+  } else {
+    const data = await res.json();
+    text = String(data.text ?? "");
+  }
+  return text.trim();
+}
+
+function stripFences(text) {
+  return text
+    .replace(/```(?:json)?/gi, "")
+    .replace(/^\s*json\s*/i, "")
+    .trim();
+}
+
+function extractJsonObjects(text) {
+  const out = [];
+  let depth = 0;
+  let start = -1;
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') {
+      inStr = true;
+    } else if (c === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (c === "}") {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        out.push(text.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+  return out;
+}
+
+function collect(item, acc) {
+  if (!item || typeof item !== "object") return;
+  if (Array.isArray(item)) {
+    item.forEach((x) => collect(x, acc));
+    return;
+  }
+  if (typeof item.tool === "string") acc.tools.push({ tool: item.tool, args: item.args || {} });
+  if (typeof item.name === "string" && item.args && !item.tool) acc.tools.push({ tool: item.name, args: item.args });
+  for (const key of ["tools", "tool_calls", "functionCall", "functionCalls"]) {
+    if (Array.isArray(item[key])) collect(item[key], acc);
+  }
+  if (typeof item.answer === "string" && !acc.answer) acc.answer = item.answer;
+}
+
+function parseDecision(raw) {
+  const acc = { tools: [], answer: null };
+  const text = stripFences(raw || "");
+  if (!text) return acc;
+
+  try {
+    collect(JSON.parse(text), acc);
+    return acc;
+  } catch {
+    /* fall through to object extraction */
+  }
+
+  for (const chunk of extractJsonObjects(text)) {
+    try {
+      collect(JSON.parse(chunk), acc);
+    } catch {
+      /* skip malformed chunk */
+    }
+  }
+  return acc;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function reveal(text, onToken) {
+  if (!onToken) return;
+  const step = Math.max(2, Math.ceil(text.length / 80));
+  for (let i = step; i < text.length; i += step) {
+    onToken(text.slice(0, i));
+    await wait(16);
+  }
+  onToken(text);
+  await wait(120);
+}
+
 export async function sendMessage(text, { timeout = 90000, onToken } = {}) {
   const clean = String(text ?? "").trim();
   if (!clean) return null;
 
   messages.push({ role: "user", text: clean, at: new Date().toISOString() });
   persist();
+  if (onToken) onToken("");
 
-  const context = buildContext();
+  const system = toolSystem();
+  let transcript = `Conversation so far:\n${historyText()}`;
+  let hint = null;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
+  const paint = () => {
+    if (onToken) onToken("");
+  };
+  const startHint = (text) => {
+    hint = { role: "system", text, status: "loading", at: new Date().toISOString() };
+    messages.push(hint);
+    paint();
+  };
+  const setHintText = (text) => {
+    if (hint) {
+      hint.text = text;
+      paint();
+    }
+  };
+  const endHint = () => {
+    if (hint) {
+      hint.status = "done";
+      paint();
+      hint = null;
+    }
+  };
+  const dropHint = () => {
+    if (!hint) return;
+    const index = messages.indexOf(hint);
+    if (index > -1) messages.splice(index, 1);
+    hint = null;
+    paint();
+  };
+  const finishHints = () => {
+    if (!hint) return;
+    if (hint.text === "Thinking") dropHint();
+    else endHint();
+  };
+
   try {
-    const response = await fetch(ASSISTANT_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: buildPrompt(context),
-        system: SYSTEM,
-        temperature: 0.2,
-        json: false,
-        maxTokens: 2048,
-      }),
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`endpoint ${response.status}`);
+    let answer = null;
 
-    let reply = "";
-    let model = response.headers?.get?.("X-Model") || null;
-    const reader = response.body?.getReader?.();
+    for (let round = 0; round < MAX_ROUNDS; round++) {
+      startHint("Thinking");
+      const raw = await callModel(system, transcript, controller.signal);
+      const decision = parseDecision(raw);
 
-    if (reader) {
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        reply += decoder.decode(value, { stream: true });
-        if (onToken) onToken(reply);
+      if (decision.tools.length) {
+        const unknown = [];
+        let reused = false;
+
+        for (const call of decision.tools) {
+          const tool = getTool(call.tool);
+          if (!tool) {
+            unknown.push(call.tool);
+            continue;
+          }
+
+          if (!reused && hint) {
+            setHintText(tool.label);
+            reused = true;
+          } else {
+            startHint(tool.label);
+          }
+          await wait(420);
+
+          let result;
+          try {
+            result = tool.run(call.args || {});
+          } catch (error) {
+            result = { error: String(error) };
+          }
+          endHint();
+          await wait(120);
+
+          transcript += `\nAssistant tool call: ${JSON.stringify(call)}`;
+          transcript += `\nTool result: ${JSON.stringify(result)}`;
+        }
+
+        if (!reused) endHint();
+        if (unknown.length) {
+          transcript += `\nUnknown tool(s): ${unknown.join(", ")}. Use only the listed tools.`;
+        }
+        continue;
       }
-      reply += decoder.decode();
-    } else {
-      const data = await response.json();
-      reply = String(data.text ?? "");
-      model = data.model || model;
+
+      dropHint();
+
+      if (typeof decision.answer === "string") {
+        answer = decision.answer;
+        break;
+      }
+
+      if (/^[{[]/.test(stripFences(raw))) {
+        transcript +=
+          '\nYour reply was not usable JSON. Respond with exactly {"tool":"<name>","args":{}} or {"answer":"..."} and nothing else.';
+        continue;
+      }
+
+      answer = raw;
+      break;
     }
 
-    reply = reply.replace(/\s+$/, "");
-    if (!reply) throw new Error("empty reply");
+    if (!answer) throw new Error("empty reply");
+    answer = String(answer).replace(/\s+$/, "");
+    if (!answer) throw new Error("empty reply");
 
     const message = {
       role: "assistant",
-      text: reply,
+      text: answer,
       source: "ai",
-      model,
       at: new Date().toISOString(),
     };
+    await reveal(answer, onToken);
     messages.push(message);
     persist();
-    if (onToken) onToken("");
+    paint();
     return message;
   } catch (error) {
+    finishHints();
     const message = {
       role: "assistant",
-      text: fallbackDigest(context),
+      text: fallbackDigest(buildContext()),
       source: "fallback",
       error: describeError(error),
       at: new Date().toISOString(),
     };
     messages.push(message);
     persist();
-    if (onToken) onToken("");
+    paint();
     return message;
   } finally {
     clearTimeout(timer);

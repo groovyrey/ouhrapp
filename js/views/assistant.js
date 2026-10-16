@@ -1,5 +1,4 @@
-import { viewHead } from "../components/index.js";
-import { escapeHtml } from "../utils/index.js";
+import { escapeHtml, renderMarkdown } from "../utils/index.js";
 import { getMessages, sendMessage, clearMessages } from "../services/index.js";
 
 const SUGGESTIONS = [
@@ -12,19 +11,28 @@ const SUGGESTIONS = [
 ];
 
 const EMPTY =
-  "Ask about people, hiring, onboarding, leave, attendance, payroll, performance, compensation, compliance, or reports. The assistant sees only non-private data and advises; you decide.";
+  "Ask about people, hiring, onboarding, leave, attendance, payroll, performance, compensation, compliance, or reports.";
 
-function bubble(message) {
-  const isUser = message.role === "user";
-  if (isUser) {
-    return `<div class="chat__row chat__row--user"><div class="chat__bubble">${escapeHtml(message.text)}</div></div>`;
+function step(message) {
+  const done = message.status === "done";
+  const state = done
+    ? `<svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>`
+    : `<span class="chat__spinner" aria-hidden="true"></span>`;
+  return `<div class="msg msg--system"><div class="chat__step">${state}<span>${escapeHtml(message.text)}</span></div></div>`;
+}
+
+function row(message) {
+  if (message.role === "system") return step(message);
+
+  if (message.role === "user") {
+    return `<div class="msg msg--user"><div class="msg__bubble">${escapeHtml(message.text)}</div></div>`;
   }
+
   const failed = message.source !== "ai";
   const notice = failed
     ? `<span class="chat__error">Assistant unavailable: ${escapeHtml(message.error || "the request failed")}. Showing a local snapshot.</span>`
     : "";
-  const meta = failed ? `<span class="chat__meta">offline snapshot</span>` : "";
-  return `<div class="chat__row chat__row--bot"><div class="chat__bubble">${notice}${escapeHtml(message.text)}</div>${meta}</div>`;
+  return `<div class="msg msg--bot"><div class="msg__text">${notice}${renderMarkdown(message.text)}</div></div>`;
 }
 
 export function assistantView(root) {
@@ -32,18 +40,31 @@ export function assistantView(root) {
   let streaming = "";
 
   root.innerHTML = `
-    ${viewHead("Manager assistant", `<button class="btn btn--ghost" type="button" id="assistant-reset">Clear</button>`)}
     <section class="chat">
+      <header class="chat__header">
+        <div class="chat__title">
+          <strong>Manager assistant</strong>
+          <span class="muted">Reads live HR data to support decisions</span>
+        </div>
+        <button class="btn btn--ghost" type="button" id="assistant-reset">Clear</button>
+      </header>
+
       <div class="chat__log" id="assistant-log" aria-live="polite"></div>
-      <div class="chat__suggestions" id="assistant-suggestions">
-        ${SUGGESTIONS.map(
-          (text) => `<button class="btn btn--ghost chat__suggestion" type="button" data-suggestion="${escapeHtml(text)}">${escapeHtml(text)}</button>`,
-        ).join("")}
-      </div>
-      <form class="chat__form" id="assistant-form">
-        <input class="input" id="assistant-input" type="text" autocomplete="off" placeholder="Ask the assistant..." aria-label="Message the assistant" />
-        <button class="btn btn--primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-send"></use></svg>Send</button>
-      </form>
+
+      <footer class="chat__composer">
+        <div class="chat__suggestions" id="assistant-suggestions">
+          ${SUGGESTIONS.map(
+            (text) => `<button class="btn btn--ghost chat__suggestion" type="button" data-suggestion="${escapeHtml(text)}">${escapeHtml(text)}</button>`,
+          ).join("")}
+        </div>
+        <form class="chat__form" id="assistant-form">
+          <input class="input chat__input" id="assistant-input" type="text" autocomplete="off" placeholder="Message the assistant" aria-label="Message the assistant" />
+          <button class="btn btn--accent chat__send" type="submit">
+            <svg class="icon" aria-hidden="true"><use href="#icon-send"></use></svg>
+            <span>Send</span>
+          </button>
+        </form>
+      </footer>
     </section>
   `;
 
@@ -55,15 +76,11 @@ export function assistantView(root) {
 
   function paint() {
     const messages = getMessages();
-    const body = messages.map(bubble).join("");
-    const streamBubble = streaming
-      ? `<div class="chat__row chat__row--bot"><div class="chat__bubble">${escapeHtml(streaming)}</div><span class="chat__meta">assistant</span></div>`
+    const body = messages.map(row).join("");
+    const stream = streaming
+      ? `<div class="msg msg--bot msg--streaming"><div class="msg__text chat__bubble--streaming">${renderMarkdown(streaming)}</div></div>`
       : "";
-    const thinking =
-      pending && !streaming
-        ? `<div class="chat__row chat__row--bot"><div class="chat__bubble chat__bubble--muted">Thinking...</div></div>`
-        : "";
-    log.innerHTML = messages.length || pending ? body + streamBubble + thinking : `<p class="muted">${EMPTY}</p>`;
+    log.innerHTML = messages.length || pending ? body + stream : `<div class="msg__empty muted">${EMPTY}</div>`;
     log.scrollTop = log.scrollHeight;
     input.disabled = pending;
     send.disabled = pending;

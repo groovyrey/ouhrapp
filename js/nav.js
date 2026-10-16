@@ -75,11 +75,17 @@ export function initNav() {
   document.addEventListener("route:change", highlight);
 
   function placeUser() {
-    if (!pill || !slot) return;
+    if (!pill || !slot || !signout) return;
     if (mobile.matches) {
       if (pill.parentElement !== slot) slot.append(pill);
-    } else if (signout && signout.previousElementSibling !== pill) {
-      signout.before(pill);
+      if (signout.parentElement !== slot) slot.append(signout);
+    } else {
+      if (signout.parentElement !== document.querySelector(".topbar__inner")) {
+        document.querySelector(".topbar__inner")?.append(signout);
+      }
+      if (signout.previousElementSibling !== pill) {
+        signout.before(pill);
+      }
     }
   }
 

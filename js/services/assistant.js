@@ -81,7 +81,7 @@ export function fallbackDigest(context) {
   ].join("\n");
 }
 
-export async function sendMessage(text, { timeout = 60000 } = {}) {
+export async function sendMessage(text, { timeout = 90000, onToken } = {}) {
   const clean = String(text ?? "").trim();
   if (!clean) return null;
 
@@ -101,24 +101,44 @@ export async function sendMessage(text, { timeout = 60000 } = {}) {
         system: SYSTEM,
         temperature: 0.2,
         json: false,
-        maxTokens: 700,
+        maxTokens: 2048,
       }),
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`endpoint ${response.status}`);
-    const data = await response.json();
-    const reply = String(data.text ?? "").trim();
+
+    let reply = "";
+    let model = response.headers?.get?.("X-Model") || null;
+    const reader = response.body?.getReader?.();
+
+    if (reader) {
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        reply += decoder.decode(value, { stream: true });
+        if (onToken) onToken(reply);
+      }
+      reply += decoder.decode();
+    } else {
+      const data = await response.json();
+      reply = String(data.text ?? "");
+      model = data.model || model;
+    }
+
+    reply = reply.replace(/\s+$/, "");
     if (!reply) throw new Error("empty reply");
 
     const message = {
       role: "assistant",
       text: reply,
       source: "ai",
-      model: data.model || null,
+      model,
       at: new Date().toISOString(),
     };
     messages.push(message);
     persist();
+    if (onToken) onToken("");
     return message;
   } catch (error) {
     const message = {
@@ -130,6 +150,7 @@ export async function sendMessage(text, { timeout = 60000 } = {}) {
     };
     messages.push(message);
     persist();
+    if (onToken) onToken("");
     return message;
   } finally {
     clearTimeout(timer);

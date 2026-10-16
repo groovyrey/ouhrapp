@@ -29,6 +29,7 @@ function bubble(message) {
 
 export function assistantView(root) {
   let pending = false;
+  let streaming = "";
 
   root.innerHTML = `
     ${viewHead("Manager assistant", `<button class="btn btn--ghost" type="button" id="assistant-reset">Clear</button>`)}
@@ -55,10 +56,14 @@ export function assistantView(root) {
   function paint() {
     const messages = getMessages();
     const body = messages.map(bubble).join("");
-    const thinking = pending
-      ? `<div class="chat__row chat__row--bot"><div class="chat__bubble chat__bubble--muted">Thinking...</div></div>`
+    const streamBubble = streaming
+      ? `<div class="chat__row chat__row--bot"><div class="chat__bubble">${escapeHtml(streaming)}</div><span class="chat__meta">assistant</span></div>`
       : "";
-    log.innerHTML = messages.length || pending ? body + thinking : `<p class="muted">${EMPTY}</p>`;
+    const thinking =
+      pending && !streaming
+        ? `<div class="chat__row chat__row--bot"><div class="chat__bubble chat__bubble--muted">Thinking...</div></div>`
+        : "";
+    log.innerHTML = messages.length || pending ? body + streamBubble + thinking : `<p class="muted">${EMPTY}</p>`;
     log.scrollTop = log.scrollHeight;
     input.disabled = pending;
     send.disabled = pending;
@@ -68,10 +73,17 @@ export function assistantView(root) {
     const value = String(text ?? "").trim();
     if (!value || pending) return;
     pending = true;
-    const promise = sendMessage(value);
+    streaming = "";
+    const promise = sendMessage(value, {
+      onToken: (partial) => {
+        streaming = partial;
+        paint();
+      },
+    });
     paint();
     await promise;
     pending = false;
+    streaming = "";
     paint();
     input.focus();
   }

@@ -104,11 +104,13 @@ js/router.js            hash router and route table
 js/nav.js               mobile drawer, focus trap, active-link highlight
 js/store.js             state and localStorage persistence
 js/seed.js              mock seed data and shared constants
+js/auth/                session state and the credential gate
 js/views/               one file per module
 js/components/          shared renderers: table, bars, form, card
 js/services/            assistant context builder and chat client
 js/utils/               escapeHtml, formatDate, formatMoney, diffDays
 assets/                 images and static files
+documents/              ARCH, DFD, ERD, USE-CASE, MIGRATION
 ```
 
 Rules the codebase follows: no API or fetch calls inside a view (they live in `services/`), no hardcoded data in views (it comes from `store`/`seed`), user text is passed through `escapeHtml`, and files stay small and single-purpose.
@@ -121,7 +123,9 @@ Tradeoffs, by design for a prototype:
 
 - Full region re-render on change rather than a virtual DOM diff.
 - Local, single-user state, so there is no sync or conflict handling.
-- The assistant depends on an external endpoint and degrades to a local snapshot when it is unavailable.
+- The assistant depends on an external endpoint, streams its reply as it generates, and degrades to a local snapshot when it is unavailable.
+
+Tables collapse into stacked rows on narrow screens, and the assistant repaints as tokens stream in, both driven by the same local `paint()` pattern.
 
 ### 7. Styling and design language
 
@@ -130,6 +134,7 @@ Three stylesheets, layered: tokens and base, then shell, then view primitives. T
 - Light theme only. Warm paper background with black ink and a red accent.
 - Type: Geist for UI, JetBrains Mono for numerals and micro labels, Instrument Serif available via the `.serif` utility.
 - Icons: an inline SVG sprite of Lucide symbols in `index.html`. Icons use `stroke="currentColor"`, so they inherit color and size from context.
+- Shell: the sidebar collapses into a drawer behind a borderless hamburger button on narrow screens, the active nav item carries a chevron, and the user pill stays visible on mobile.
 
 ## Manager assistant
 
@@ -152,18 +157,33 @@ Private data is deliberately excluded: individual salaries, contact details, gov
 
 ### Chat client (`js/services/assistant.js`)
 
-The snapshot, the system prompt, and the recent conversation go to a Gemini endpoint on a Cloudflare Worker:
+The snapshot, the system prompt, and the recent conversation go to a Gemini endpoint on a Cloudflare Worker, which streams the answer back as plain text:
 
 ```
 POST https://worker8651.reymartcenteno03.workers.dev/api/groovyrey/gemini
-body: { prompt, system, temperature: 0.2, json: false, maxTokens: 700 }
+body: { prompt, system, temperature: 0.2, json: false, maxTokens: 2048 }
+response: text/plain stream, with an X-Model header naming the model
 ```
 
-The system prompt tells the model to advise with a clear recommendation and reason, to use only the snapshot, to never invent data, and to refuse private data while offering a non-private angle. History is kept in `localStorage` under `ouhrapp:assistant:v1` and capped at 60 messages. The client has a 20 second timeout.
+The worker hardcodes the model (`gemma-4-26b-a4b-it`) and calls it with the official `@google/generative-ai` SDK using `generateContentStream`, so the browser receives tokens as they are produced rather than one final block.
+
+The client reads the response body with a stream reader and renders tokens as they arrive, so the answer types out progressively while the rest is still generating. The request is abandoned after 90 seconds.
+
+The system prompt tells the model to advise with a clear recommendation and reason, to use only the snapshot, to never invent data, and to refuse private data while offering a non-private angle. History is kept in `localStorage` under `ouhrapp:assistant:v1` and capped at 60 messages.
 
 If the endpoint is unreachable, times out, or returns an empty reply, it falls back to a deterministic local summary of the snapshot marked `source: "fallback"`.
 
 For local development the endpoint allows only the `groovyrey.github.io` and `localhost` origins. The assistant advises; the manager decides.
+
+## Documents
+
+Longer design docs live in `documents/`:
+
+- `ARCH.md`: architecture diagrams for the prototype and the production target (Mermaid).
+- `DFD.md`: data flow diagrams.
+- `ERD.md`: entity relationship diagram.
+- `USE-CASE.md`: use cases per actor.
+- `MIGRATION.md`: prototype-to-production migration plan.
 
 ## Leave
 

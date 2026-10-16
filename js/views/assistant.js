@@ -16,15 +16,15 @@ const EMPTY =
 
 function bubble(message) {
   const isUser = message.role === "user";
-  const meta = isUser
-    ? ""
-    : `<span class="chat__meta">${escapeHtml(
-        message.source === "ai" ? message.model || "assistant" : "offline snapshot",
-      )}</span>`;
-  return `<div class="chat__row ${isUser ? "chat__row--user" : "chat__row--bot"}">
-    <div class="chat__bubble">${escapeHtml(message.text)}</div>
-    ${meta}
-  </div>`;
+  if (isUser) {
+    return `<div class="chat__row chat__row--user"><div class="chat__bubble">${escapeHtml(message.text)}</div></div>`;
+  }
+  const failed = message.source !== "ai";
+  const notice = failed
+    ? `<span class="chat__error">Assistant unavailable: ${escapeHtml(message.error || "the request failed")}. Showing a local snapshot.</span>`
+    : "";
+  const meta = `<span class="chat__meta">${escapeHtml(failed ? "offline snapshot" : message.model || "assistant")}</span>`;
+  return `<div class="chat__row chat__row--bot"><div class="chat__bubble">${notice}${escapeHtml(message.text)}</div>${meta}</div>`;
 }
 
 export function assistantView(root) {

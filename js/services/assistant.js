@@ -64,6 +64,22 @@ export function buildPrompt(context) {
   ].join("\n");
 }
 
+export function describeError(error) {
+  const raw = String(error?.message || error || "").trim();
+  if (/abort/i.test(raw)) return "the request timed out";
+  const status = raw.match(/endpoint (\d{3})/);
+  if (status) {
+    const code = status[1];
+    if (code === "403") return "the server blocked the request (403, origin not allowed)";
+    if (code === "429") return "too many requests (429), retry in a minute";
+    if (code === "502" || code === "503") return `the model is unavailable (${code})`;
+    return `the server returned ${code}`;
+  }
+  if (/failed to fetch|networkerror|load failed|network request failed/i.test(raw)) return "a network or CORS error";
+  if (/empty reply/i.test(raw)) return "the model returned an empty reply";
+  return raw || "an unknown error";
+}
+
 export function fallbackDigest(context) {
   const outstanding = context.compliance.policies.reduce((sum, p) => sum + p.outstanding, 0);
   const wantReminder =
@@ -145,7 +161,7 @@ export async function sendMessage(text, { timeout = 90000, onToken } = {}) {
       role: "assistant",
       text: fallbackDigest(context),
       source: "fallback",
-      error: String(error?.message || error),
+      error: describeError(error),
       at: new Date().toISOString(),
     };
     messages.push(message);

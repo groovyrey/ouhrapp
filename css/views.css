@@ -482,6 +482,13 @@
   font-family: var(--font-mono);
 }
 
+.chat__error {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent);
+  font-size: 13px;
+}
+
 .chat__suggestions {
   display: flex;
   flex-wrap: wrap;

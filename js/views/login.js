@@ -13,7 +13,7 @@ export function loginView(root, onSuccess) {
       <label class="field">Password
         <input class="input" type="password" name="password" autocomplete="current-password" required />
       </label>
-      <p class="login__error" hidden>Wrong username or password.</p>
+      <p class="login__error" role="alert" hidden>Wrong username or password.</p>
       <button class="btn btn--primary login__submit" type="submit">Sign in</button>
     </form>`;
 

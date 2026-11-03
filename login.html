@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OUHRAPP - Sign in</title>
+  <meta name="theme-color" content="#f3f0e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;650;700&family=Instrument+Serif:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/views.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body class="auth-screen">
+  <div id="login-root"></div>
+  <script type="module">
+    import { loginView } from "./js/views/login.js";
+    import { getSession } from "./js/auth/index.js";
+    if (getSession()) window.location.replace("index.html");
+    loginView(document.querySelector("#login-root"), () => window.location.replace("index.html"));
+  </script>
+</body>
+</html>

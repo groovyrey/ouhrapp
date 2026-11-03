@@ -1,33 +1,49 @@
 import { getSession, logout } from "./auth/index.js";
 import { initNav } from "./nav.js";
 import { initRouter } from "./router.js";
-import { loginView } from "./views/login.js";
 
 const root = document.querySelector("#main");
 
-function mountApp(session) {
-  document.body.classList.remove("auth-screen");
-
+const session = getSession();
+if (!session) {
+  window.location.replace("login.html");
+} else {
   const user = document.querySelector("#topbar-user");
   if (user) user.textContent = session.name;
 
+  const menuButton = document.querySelector("#user-menu-button");
+  const menu = document.querySelector("#user-menu");
   const signout = document.querySelector("#signout");
+
+  if (menuButton && menu) {
+    const setOpen = (open) => {
+      menu.hidden = !open;
+      menuButton.setAttribute("aria-expanded", String(open));
+      if (open) signout?.focus();
+    };
+
+    menuButton.addEventListener("click", () => setOpen(menu.hidden));
+
+    document.addEventListener("click", (event) => {
+      if (menu.hidden) return;
+      if (menu.contains(event.target) || menuButton.contains(event.target)) return;
+      setOpen(false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || menu.hidden) return;
+      setOpen(false);
+      menuButton.focus();
+    });
+  }
+
   if (signout) {
     signout.addEventListener("click", () => {
       logout();
-      window.location.reload();
+      window.location.replace("login.html");
     });
   }
 
   initNav();
   initRouter(root);
 }
-
-function mountLogin() {
-  document.body.classList.add("auth-screen");
-  loginView(root, () => window.location.reload());
-}
-
-const session = getSession();
-if (session) mountApp(session);
-else mountLogin();
